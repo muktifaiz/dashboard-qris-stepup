@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRIS STEP UP — Cross-Border Monitoring Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F7FB;
+    --panel:#FFFFFF;
+    --panel-alt:#F7F9FC;
+    --panel-raised:#FFFFFF;
+    --border:rgba(20,32,60,0.10);
+    --border-strong:rgba(20,32,60,0.18);
+    --text-1:#1B2437;
+    --text-2:#5A6478;
+    --text-3:#8A93A6;
+    --red:#D41B3C;
+    --red-dim:rgba(212,27,60,0.10);
+    --amber:#C98A16;
+    --amber-dim:rgba(201,138,22,0.12);
+    --green:#2E9E77;
+    --green-dim:rgba(46,158,119,0.12);
+    --blue:#2E6DB4;
+    --blue-dim:rgba(46,109,180,0.12);
+    --track:#E7ECF4;
+    --shadow-sm:0 1px 2px rgba(20,32,60,0.05);
+    --shadow-md:0 4px 14px rgba(20,32,60,0.07);
+    --shadow-lg:0 10px 30px rgba(20,32,60,0.12);
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'IBM Plex Sans',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 12% -12%, rgba(46,109,180,0.06), transparent 60%),
+      radial-gradient(ellipse 760px 520px at 100% -6%, rgba(46,158,119,0.05), transparent 55%),
+      var(--bg);
+    color:var(--text-1);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{max-width:1320px;margin:0 auto;padding:28px 24px 80px;}
+
+  /* ---------- corner bracket motif (retired for clean look) ---------- */
+  .bracket .bl,.bracket .br{display:none;}
+
+  /* ---------- header ---------- */
+  header.top{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    flex-wrap:wrap;gap:20px;
+    padding-bottom:22px;margin-bottom:26px;
+    border-bottom:1px solid var(--border);
+  }
+  .eyebrow{
+    font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+    color:var(--red);text-transform:uppercase;margin:0 0 10px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--red);}
+  h1{
+    font-family:var(--font-display);font-weight:700;
+    font-size:clamp(24px,3vw,34px);margin:0 0 6px;letter-spacing:-0.01em;
+  }
+  .sub{color:var(--text-2);font-size:14px;max-width:560px;line-height:1.5;margin:0;}
+  .stat-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .stat-pill{
+    padding:10px 16px;border:1px solid var(--border);border-radius:12px;background:var(--panel);
+    box-shadow:var(--shadow-sm);min-width:104px;
+  }
+  .stat-pill .n{font-family:var(--font-mono);font-size:20px;font-weight:600;display:block;}
+  .stat-pill .l{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;}
+  .stat-pill.red .n{color:var(--red);}
+  .stat-pill.amber .n{color:var(--amber);}
+  .stat-pill.green .n{color:var(--green);}
+
+  /* ---------- section headers ---------- */
+  .section-head{display:flex;align-items:baseline;gap:12px;margin:44px 0 16px;}
+  .section-head .idx{font-family:var(--font-mono);color:var(--text-3);font-size:12px;}
+  .section-head h2{font-family:var(--font-display);font-size:19px;margin:0;font-weight:600;}
+  .section-head p{color:var(--text-2);font-size:13px;margin:2px 0 0;}
+  .section-head .line{flex:1;height:1px;background:var(--border);align-self:center;}
+
+  /* ---------- layout: tracker + detail ---------- */
+  .tracker-layout{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;}
+  @media(max-width:920px){.tracker-layout{grid-template-columns:1fr;}}
+
+  .corridor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:16px;
+    padding:16px 16px 14px;cursor:pointer;box-shadow:var(--shadow-sm);
+    transition:box-shadow .2s ease,transform .15s ease,border-color .2s ease,opacity .2s ease;
+    position:relative;
+  }
+  .card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+  .card.active{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim),var(--shadow-md);}
+  .card.card-dragging{opacity:.45;box-shadow:var(--shadow-lg);transform:scale(.98);}
+  .card.card-drop-target{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
+  .card .card-grip{
+    position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--text-3);
+    border:1px solid var(--border);background:var(--panel-alt);opacity:0;
+    transition:opacity .2s ease,color .2s ease,border-color .2s ease;
+  }
+  .card:hover .card-grip{opacity:1;}
+  .card .card-grip:hover{color:var(--blue);border-color:var(--blue);}
+  .card .card-grip:active{cursor:grabbing;}
+  .card .card-grip svg{width:12px;height:12px;pointer-events:none;}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .country{font-family:var(--font-display);font-weight:600;font-size:16px;display:flex;align-items:center;gap:8px;}
+  .iso-badge{
+    font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.03em;
+    padding:2px 6px;border:1px solid var(--border-strong);border-radius:6px;
+    color:var(--text-2);background:var(--panel-alt);
+  }
+  .badge{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;padding:3px 8px;border-radius:999px;text-transform:uppercase;white-space:nowrap;}
+  .badge.launched{background:var(--green-dim);color:var(--green);}
+  .badge.progress{background:var(--blue-dim);color:var(--blue);}
+  .badge.risk{background:var(--amber-dim);color:var(--amber);}
+  .badge.alert{background:var(--red-dim);color:var(--red);}
+
+  .steps{display:flex;gap:4px;margin-bottom:10px;}
+  .step{flex:1;height:5px;border-radius:999px;background:var(--track);}
+  .step.done{background:var(--green);}
+  .step.current{background:var(--amber);}
+  .step-label{font-family:var(--font-mono);font-size:10px;color:var(--text-3);}
+
+  .card-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-top:10px;font-family:var(--font-mono);}
+
+  .detail-panel{
+    background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;
+    position:sticky;top:20px;box-shadow:var(--shadow-sm);
+  }
+  .detail-panel h3{font-family:var(--font-display);margin:0 0 3px;font-size:17px;}
+  .detail-panel .dsub{font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:16px;}
+  .dim-row{margin-bottom:12px;}
+  .dim-row .dl{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;color:var(--text-2);}
+  .dim-row .dl b{color:var(--text-1);font-family:var(--font-mono);}
+  .bar-track{height:6px;background:var(--track);border-radius:999px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:999px;}
+
+  .milestones{margin-top:18px;border-top:1px solid var(--border);padding-top:14px;}
+  .milestones .mh{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px;font-family:var(--font-mono);}
+  .m-item{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px dashed var(--border);}
+  .m-item:last-child{border-bottom:none;}
+  .m-item .mv{font-family:var(--font-mono);color:var(--text-2);}
+  .m-item .mv.late{color:var(--amber);}
+  .m-item .mv.ok{color:var(--green);}
+
+  .empty-state{color:var(--text-3);font-size:13px;text-align:center;padding:40px 10px;}
+
+  /* ---------- readiness table ---------- */
+  .readiness-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .readiness-table th{
+    text-align:left;font-family:var(--font-mono);font-weight:500;font-size:10px;
+    color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;padding:0 10px 10px;
+    border-bottom:1px solid var(--border);
+  }
+  .readiness-table td{padding:10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .readiness-table tr:hover td{background:var(--panel-alt);}
+  .rt-country{font-weight:600;font-family:var(--font-display);}
+  .rt-bar-cell{min-width:140px;}
+  .rt-bar{display:flex;align-items:center;gap:8px;}
+  .rt-bar .bar-track{flex:1;}
+  .rt-bar .val{font-family:var(--font-mono);font-size:11px;color:var(--text-2);width:30px;text-align:right;}
+
+  /* ---------- scale legend (0–10) ---------- */
+  .scale-legend{
+    margin-top:16px;border:1px dashed var(--border-strong);border-radius:12px;
+    padding:14px 16px;background:var(--panel-alt);
+  }
+  .scale-legend .sl-title{
+    font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--text-3);margin-bottom:10px;
+  }
+  .sl-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .sl-chip{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-2);
+    background:var(--panel);border:1px solid var(--border);border-radius:999px;padding:4px 10px;}
+  .sl-chip .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
+  .sl-chip b{font-family:var(--font-mono);color:var(--text-1);}
+  .sl-aspects{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media(max-width:760px){.sl-aspects{grid-template-columns:1fr;}}
+  .sl-aspect{font-size:11px;color:var(--text-2);line-height:1.5;border-left:3px solid var(--border-strong);padding-left:10px;}
+  .sl-aspect b{color:var(--text-1);display:block;font-size:11.5px;margin-bottom:2px;font-family:var(--font-display);}
+  .sl-aspect .ph{color:var(--text-3);font-style:italic;}
+  .sl-note{margin-top:10px;font-size:10.5px;color:var(--text-3);font-style:italic;}
+
+  /* ---------- variance chart ---------- */
+  .variance-list{display:flex;flex-direction:column;gap:14px;}
+  .v-row{display:grid;grid-template-columns:150px 1fr 108px;align-items:center;gap:14px;}
+  .v-name{font-size:13px;font-weight:600;font-family:var(--font-display);display:flex;align-items:center;gap:8px;}
+  .v-track{position:relative;height:24px;background:var(--track);border-radius:8px;overflow:visible;}
+  .v-bar{position:absolute;top:0;left:0;height:100%;border-radius:8px;transition:width .4s ease;}
+  .v-bar.over{background:linear-gradient(90deg,var(--amber),rgba(201,138,22,.6));}
+  .v-bar.under{background:linear-gradient(90deg,var(--green),rgba(46,158,119,.6));}
+  /* in-progress corridors: elapsed-so-far, striped + animated to read as "sedang berjalan" */
+  .v-bar.progress{
+    background:repeating-linear-gradient(45deg,var(--blue) 0,var(--blue) 9px,#6ba0d8 9px,#6ba0d8 18px);
+    background-size:200% 100%;opacity:.92;
+    animation:vstripe 1.1s linear infinite;
+  }
+  @keyframes vstripe{from{background-position:0 0;}to{background-position:36px 0;}}
+  .v-bar.progress::after{
+    content:"";position:absolute;right:-1px;top:0;bottom:0;width:2px;border-radius:2px;
+    background:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);
+  }
+  .v-mini{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 6px;border-radius:999px;background:var(--blue-dim);color:var(--blue);}
+  .v-target{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--text-2);border-radius:2px;}
+  .v-target::after{content:attr(data-label);position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text-3);font-family:var(--font-mono);white-space:nowrap;}
+  .v-val{font-family:var(--font-mono);font-size:12px;text-align:right;line-height:1.35;}
+  .v-val small{display:block;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;}
+  .v-val.over{color:var(--amber);}
+  .v-val.under{color:var(--green);}
+  .v-val.prog{color:var(--blue);}
+
+  /* ---------- alerts ---------- */
+  .alert-list{display:flex;flex-direction:column;gap:10px;}
+  .alert{
+    display:flex;gap:14px;padding:14px 16px;border-radius:12px;border:1px solid var(--border);
+    background:var(--panel);align-items:flex-start;box-shadow:var(--shadow-sm);
+  }
+  .alert.sev-high{border-left:3px solid var(--red);}
+  .alert.sev-med{border-left:3px solid var(--amber);}
+  .alert .a-icon{font-family:var(--font-mono);font-size:11px;line-height:1;padding:0 9px;height:20px;display:inline-flex;align-items:center;border-radius:6px;white-space:nowrap;}
+  .alert.sev-high .a-icon{background:var(--red-dim);color:var(--red);}
+  .alert.sev-med .a-icon{background:var(--amber-dim);color:var(--amber);}
+  .alert .a-body b{font-size:13px;}
+  .alert .a-body p{margin:4px 0 0;font-size:12px;color:var(--text-2);line-height:1.5;}
+
+  /* ---------- draggable dashboard sections ---------- */
+  .dash-section{
+    background:var(--panel);border:1px solid var(--border);border-radius:18px;
+    padding:20px 22px 24px;margin:18px 0;box-shadow:var(--shadow-sm);
+    transition:box-shadow .2s ease,opacity .2s ease,transform .2s ease;
+  }
+  .dash-section .section-head{margin:0 0 16px;}
+  .drag-handle{
+    display:inline-flex;align-items:center;justify-content:center;gap:2px;
+    width:26px;height:26px;border-radius:8px;cursor:grab;color:var(--text-3);
+    border:1px solid var(--border);background:var(--panel-alt);flex:0 0 auto;
+    transition:color .2s ease,border-color .2s ease,background .2s ease;
+  }
+  .drag-handle:hover{color:var(--blue);border-color:var(--blue);}
+  .drag-handle:active{cursor:grabbing;}
+  .drag-handle svg{width:14px;height:14px;pointer-events:none;}
+  .dash-section.dragging{opacity:.5;box-shadow:var(--shadow-lg);transform:scale(.99);}
+  .dash-section.drop-target{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
+  .drag-hint{
+    font-family:var(--font-mono);font-size:11px;color:var(--text-3);
+    margin:6px 0 4px;display:flex;align-items:center;gap:7px;
+  }
+  .drag-hint svg{width:13px;height:13px;}
+
+  footer{
+    margin-top:50px;padding-top:18px;border-top:1px solid var(--border);
+    font-size:11px;color:var(--text-3);line-height:1.7;font-family:var(--font-mono);
+  }
+  footer b{color:var(--text-2);}
+
+  /* ---------- nav toggle ---------- */
+  .nav-toggle{
+    font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;
+    padding:9px 16px;border:1px solid var(--border-strong);border-radius:10px;
+    background:var(--panel);color:var(--text-1);cursor:pointer;box-shadow:var(--shadow-sm);
+    transition:border-color .2s ease,color .2s ease,box-shadow .2s ease;white-space:nowrap;
+  }
+  .nav-toggle:hover{border-color:var(--blue);color:var(--blue);box-shadow:var(--shadow-md);}
+
+  /* ---------- edit page: table ---------- */
+  .edit-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--panel);box-shadow:var(--shadow-sm);}
+  .edit-table{width:100%;border-collapse:collapse;font-size:12px;min-width:860px;}
+  .edit-table th{
+    text-align:left;font-family:var(--font-mono);font-size:10px;color:var(--text-3);
+    text-transform:uppercase;letter-spacing:.06em;padding:10px;border-bottom:1px solid var(--border);
+    background:var(--panel-alt);white-space:nowrap;
+  }
+  .edit-table td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+
+  .edit-table input, .edit-table select,
+  .edit-form input, .edit-form select{
+    background:var(--panel);border:1px solid var(--border-strong);border-radius:8px;
+    color:var(--text-1);font-family:var(--font-mono);font-size:12px;padding:7px 8px;width:100%;
+  }
+  .edit-table input:focus, .edit-table select:focus,
+  .edit-form input:focus, .edit-form select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
+
+  .ef-remove{
+    background:transparent;border:1px solid var(--border-strong);color:var(--text-2);
+    border-radius:8px;width:28px;height:28px;cursor:pointer;font-family:var(--font-mono);
+  }
+  .ef-remove:hover{border-color:var(--red);color:var(--red);}
+
+  .edit-actions{display:flex;align-items:center;gap:14px;margin-top:14px;}
+  .btn{
+    font-family:var(--font-mono);font-size:12px;letter-spacing:.03em;
+    padding:9px 16px;border-radius:10px;border:1px solid transparent;
+    background:var(--blue);color:#fff;font-weight:600;cursor:pointer;box-shadow:var(--shadow-sm);
+    transition:filter .2s ease,box-shadow .2s ease,border-color .2s ease;
+  }
+  .btn:hover{filter:brightness(1.06);box-shadow:var(--shadow-md);}
+  .btn.danger{background:var(--red);color:#fff;}
+  .btn.ghost{background:var(--panel);color:var(--text-1);border-color:var(--border-strong);}
+  .btn.ghost:hover{border-color:var(--blue);color:var(--blue);filter:none;}
+  .saved-note{font-size:11px;color:var(--text-3);font-family:var(--font-mono);}
+
+  /* ---------- edit page: add-corridor form ---------- */
+  .edit-form{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+    background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow-sm);
+  }
+  .ef-field label{display:block;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:var(--font-mono);}
+  .ef-submit{display:flex;align-items:flex-end;}
+  .ef-submit .btn{width:100%;}
+  @media(max-width:760px){.edit-form{grid-template-columns:repeat(2,1fr);}}
+
+  .tool-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+  .toast{
+    margin-top:16px;padding:0 14px;border-radius:10px;font-size:12px;font-family:var(--font-mono);
+    border:1px solid transparent;background:var(--panel);color:var(--text-2);
+    opacity:0;height:0;overflow:hidden;transition:opacity .2s ease,padding .2s ease;
+  }
+  .toast.show{opacity:1;height:auto;padding:10px 14px;border-color:var(--border);}
+  .toast.toast-error{border-color:var(--red);color:var(--red);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <p class="eyebrow"><span class="dot"></span>PROTOTIPE — SISTEMISASI PILAR QRIS STEP UP</p>
+      <h1>Cross-Border Corridor Monitoring</h1>
+      <p class="sub">Dashboard pemantauan perluasan kerja sama QRIS Cross-Border, dikembangkan sebagai bagian dari BPR 3S PASTI SIP — DKSP.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-end;">
+      <button id="navToggleBtn" class="nav-toggle" type="button">Edit Data →</button>
+      <div class="stat-row" id="statRow"></div>
+    </div>
+  </header>
+
+<div id="trackerView">
+
+  <p class="drag-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>
+    Seret ikon pegangan di tiap panel untuk menyusun ulang urutan dashboard. Urutan tersimpan otomatis.
+  </p>
+
+  <div id="dashSections">
+    <!-- 1. PROJECT TRACKER -->
+    <section class="dash-section" data-key="tracker" draggable="false">
+      <div class="section-head">
+        <span class="drag-handle" title="Seret untuk memindahkan"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>
+        <span class="idx">01</span>
+        <div><h2>Cross-Border Project Tracker</h2><p>Posisi tiap koridor terhadap 5-Step Model — pilih kartu untuk detail.</p></div>
+        <div class="line"></div>
+      </div>
+      <div class="tracker-layout">
+        <div class="corridor-grid" id="corridorGrid"></div>
+        <div class="detail-panel bracket" id="detailPanel"><span class="bl"></span><span class="br"></span></div>
+      </div>
+    </section>
+
+    <!-- 2. READINESS INDEX -->
+    <section class="dash-section" data-key="readiness" draggable="false">
+      <div class="section-head">
+        <span class="drag-handle" title="Seret untuk memindahkan"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>
+        <span class="idx">02</span>
+        <div><h2>Readiness Index</h2><p>Skor kesiapan legal, teknis, dan industri per negara mitra — skala 0–10.</p></div>
+        <div class="line"></div>
+      </div>
+      <table class="readiness-table">
+        <thead>
+          <tr><th>Negara</th><th>Legal (0–10)</th><th>Teknis (0–10)</th><th>Industri (0–10)</th><th>Rata-rata</th></tr>
+        </thead>
+        <tbody id="readinessBody"></tbody>
+      </table>
+      <div class="scale-legend" id="scaleLegend"></div>
+    </section>
+
+    <!-- 3. TIMELINE VARIANCE -->
+    <section class="dash-section" data-key="variance" draggable="false">
+      <div class="section-head">
+        <span class="drag-handle" title="Seret untuk memindahkan"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>
+        <span class="idx">03</span>
+        <div><h2>Timeline Variance Tracking</h2><p>Durasi inisiasi → launch dibanding target &lt; 1 tahun (garis abu). Koridor berjalan ditampilkan dengan bar berpola.</p></div>
+        <div class="line"></div>
+      </div>
+      <div class="variance-list" id="varianceList"></div>
+    </section>
+
+    <!-- 4. EARLY WARNING -->
+    <section class="dash-section" data-key="alerts" draggable="false">
+      <div class="section-head">
+        <span class="drag-handle" title="Seret untuk memindahkan"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>
+        <span class="idx">04</span>
+        <div><h2>Early Warning Alerts</h2><p>Dihasilkan otomatis dari ambang batas readiness &amp; variance.</p></div>
+        <div class="line"></div>
+      </div>
+      <div class="alert-list" id="alertList"></div>
+    </section>
+  </div>
+
+  <footer>
+    <div><b>Sumber referensi:</b> PASTI SIP_Action Plan DKSP_QRIS STEP UP.docx · Dokumen Pendukung_PASTI SIP_DKSP.pdf</div>
+    <div><b>Catatan:</b> koridor Thailand–Tiongkok menggunakan tanggal dari Action Plan §1.2. Koridor Saudi, Hong Kong, Uzbekistan, Timor Leste, serta seluruh skor readiness bersifat ilustratif untuk mendemonstrasikan fungsi dashboard.</div>
+  </footer>
+</div>
+<!-- /trackerView -->
+
+<div id="editView" style="display:none">
+
+  <div class="section-head">
+    <span class="idx">A</span>
+    <div><h2>Edit Data Koridor</h2><p>Perbarui readiness index, tahap, dan tanggal untuk koridor yang sudah ada.</p></div>
+    <div class="line"></div>
+  </div>
+  <div id="editTable"></div>
+  <div class="edit-actions">
+    <button id="saveAllBtn" class="btn" type="button">Simpan Perubahan</button>
+    <span class="saved-note">Perubahan disimpan otomatis di browser ini (localStorage).</span>
+  </div>
+
+  <div class="section-head">
+    <span class="idx">B</span>
+    <div><h2>Tambah Koridor Baru</h2><p>Tambahkan negara mitra interlinkage baru ke dashboard.</p></div>
+    <div class="line"></div>
+  </div>
+  <form id="addForm" class="edit-form">
+    <div class="ef-field"><label>Kode ISO</label><input name="iso" maxlength="3" placeholder="cth. VN" required></div>
+    <div class="ef-field" style="grid-column:span 2;"><label>Nama Negara</label><input name="name" placeholder="cth. Vietnam" required></div>
+    <div class="ef-field"><label>Tahap Awal</label><select name="step" id="addStepSelect"></select></div>
+    <div class="ef-field"><label>Tanggal Mulai</label><input type="date" name="start"></div>
+    <div class="ef-field"><label>Tanggal Launch (opsional)</label><input type="date" name="launch"></div>
+    <div class="ef-field"><label>Legal (0–10)</label><input type="number" name="legal" min="0" max="10" step="1" value="3"></div>
+    <div class="ef-field"><label>Teknis (0–10)</label><input type="number" name="tech" min="0" max="10" step="1" value="3"></div>
+    <div class="ef-field"><label>Industri (0–10)</label><input type="number" name="industri" min="0" max="10" step="1" value="3"></div>
+    <div class="ef-field ef-submit"><button type="submit" class="btn">+ Tambah Koridor</button></div>
+  </form>
+
+  <div class="section-head">
+    <span class="idx">C</span>
+    <div><h2>Data Tools</h2><p>Data tersimpan lokal per-browser — gunakan export/import untuk berbagi dengan rekan tim yang membuka file ini di komputer lain.</p></div>
+    <div class="line"></div>
+  </div>
+  <div class="tool-row">
+    <button id="exportBtn" class="btn ghost" type="button">Export JSON</button>
+    <label class="btn ghost" style="cursor:pointer;">Import JSON<input type="file" id="importFile" accept="application/json" hidden></label>
+    <button id="resetBtn" class="btn danger" type="button">Reset ke Data Default</button>
+  </div>
+  <div id="toast" class="toast"></div>
+
+</div>
+<!-- /editView -->
+
+<script>
+const STEPS = ["MoU / SBC","Working Group Industri","Reg/Teknis/Bisnis Prep","Development Stage (SIT, UAT, Sandbox)","Implementation"];
+const SCALE_MAX = 10;   // skor readiness: skala 0–10
+
+// Keterangan skala 0–10 untuk tiap aspek (placeholder — sesuaikan dengan kriteria final).
+// Dipakai pada legenda dan tooltip. Pola umum: 0 = belum ada sama sekali, 10 = siap penuh.
+const SCALE_LEGEND = {
+  umum: [
+    {v:0,  t:"Belum ada sama sekali / tidak tersedia"},
+    {v:2,  t:"Tahap sangat awal, belum memadai"},
+    {v:4,  t:"Sebagian tersedia, masih banyak kesenjangan"},
+    {v:6,  t:"Cukup memadai, perlu penyempurnaan"},
+    {v:8,  t:"Hampir siap penuh"},
+    {v:10, t:"Siap penuh / matang"},
+  ],
+  // Keterangan spesifik per aspek — placeholder, silakan sesuaikan.
+  legal:    "0 = belum ada dasar hukum/MoU; 10 = kerangka legal lengkap & mengikat",
+  tech:     "0 = sistem QR tidak kompatibel/tidak ada; 10 = interkoneksi teknis siap & teruji",
+  industri: "0 = tidak ada industri yang mampu; 10 = industri siap & teradopsi luas",
+};
+
+// step index: 0-5 (0 = di tahap pertama, 5 = selesai/launched)
+// skor legal/tech/industri: skala 0–10
+const DEFAULT_CORRIDORS = [
+  {c:"Thailand", iso:"TH", step:5, start:"2020-09-09", launch:"2022-08-29", days:719, legal:10, tech:10, industri:10},
+  {c:"Malaysia", iso:"MY", step:5, start:"2019-09-27", launch:"2023-05-08", days:1319, legal:10, tech:10, industri:10},
+  {c:"Singapura", iso:"SG", step:5, start:"2022-08-29", launch:"2023-11-17", days:445, legal:10, tech:10, industri:10},
+  {c:"Jepang", iso:"JP", step:5, start:"2022-12-09", launch:"2025-08-17", days:982, legal:10, tech:10, industri:10},
+  {c:"Korea Selatan", iso:"KR", step:5, start:"2024-08-02", launch:"2026-04-01", days:607, legal:10, tech:10, industri:10},
+  {c:"Tiongkok", iso:"CN", step:5, start:"2025-05-25", launch:"2026-04-30", days:340, legal:10, tech:10, industri:10},
+  {c:"Saudi*", iso:"SA", step:1, start:"2026-02-01", launch:null, days:null, legal:5, tech:5, industri:4},
+  {c:"Hong Kong*", iso:"HK", step:1, start:"2026-01-15", launch:null, days:null, legal:6, tech:6, industri:5},
+  {c:"Uzbekistan*", iso:"UZ", step:0, start:"2026-03-01", launch:null, days:null, legal:4, tech:3, industri:3},
+  {c:"Timor Leste*", iso:"TL", step:0, start:"2026-03-10", launch:null, days:null, legal:5, tech:4, industri:4},
+];
+
+const TARGET_DAYS = 365;
+const STORAGE_KEY = "qris_step_up_corridors_v2";      // v2: skor readiness skala 0–10
+const LEGACY_KEY  = "qris_step_up_corridors_v1";      // v1: skor skala 0–100 (dimigrasikan)
+const ORDER_KEY = "qris_step_up_section_order_v1";
+
+// Konversi data lama (skala 0–100) ke skala 0–10 bila terdeteksi.
+function migrateScale(arr){
+  let touched = false;
+  arr.forEach(c=>{
+    ['legal','tech','industri'].forEach(k=>{
+      if(typeof c[k] === 'number' && c[k] > 10){ c[k] = Math.round(c[k]/10); touched = true; }
+    });
+  });
+  return touched;
+}
+
+function loadCorridors(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed) && parsed.length){ migrateScale(parsed); return parsed; }
+    }
+    // migrasi dari versi lama (skala 0–100) jika ada
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    if(legacy){
+      const parsed = JSON.parse(legacy);
+      if(Array.isArray(parsed) && parsed.length){
+        migrateScale(parsed);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        return parsed;
+      }
+    }
+  }catch(e){ console.warn("Gagal membaca data tersimpan, memakai data default.", e); }
+  return JSON.parse(JSON.stringify(DEFAULT_CORRIDORS));
+}
+function saveCorridors(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(corridors)); }
+  catch(e){ console.warn("Gagal menyimpan data.", e); }
+}
+
+let corridors = loadCorridors();
+let selected = null;
+
+function computeAlerts(c){
+  // Koridor berstatus "Selesai — Live" dianggap tuntas — tidak lagi memunculkan alert.
+  if(c.step>=5) return [];
+  const avg = (c.legal+c.tech+c.industri)/3;
+  const out = [];
+  const fmt = (x)=>Math.round(x*10)/10;   // satu desimal pada skala 0–10
+  if(avg < 4.5){
+    out.push({sev:"high", title:`Readiness kritis (${fmt(avg)}/10)`, body:`Rata-rata skor legal/teknis/industri di bawah ambang 4,5. Perlu percepatan working group sebelum lanjut ke tahap berikutnya.`});
+  } else if(avg < 6){
+    out.push({sev:"med", title:`Readiness perlu perhatian (${fmt(avg)}/10)`, body:`Salah satu atau lebih dimensi readiness berada di bawah 6. Disarankan eskalasi ke CAC untuk penyelarasan lintas pihak.`});
+  }
+  if(c.days && c.days > TARGET_DAYS){
+    out.push({sev: c.days > TARGET_DAYS*1.5 ? "high":"med", title:`Siklus melampaui target (${c.days} hari)`, body:`Durasi inisiasi ke launch melebihi target &lt;1 tahun sebesar ${c.days-TARGET_DAYS} hari. Evaluasi bottleneck pada tahap "${STEPS[Math.min(c.step,4)]}".`});
+  }
+  return out;
+}
+
+function stageBadge(c){
+  return c.step>=5 ? `<span class="badge launched">Launched</span>` : `<span class="badge progress">In Progress</span>`;
+}
+
+function riskBadge(c){
+  const alerts = computeAlerts(c);
+  if(!alerts.length) return '';
+  const highest = alerts.some(a=>a.sev==="high") ? "high" : "med";
+  return highest==="high" ? `<span class="badge alert">Alert</span>` : `<span class="badge risk">At Risk</span>`;
+}
+
+function renderStats(){
+  const total = corridors.length;
+  const launched = corridors.filter(c=>c.step>=5).length;
+  const atRisk = corridors.filter(c=>computeAlerts(c).length>0).length;
+  const avgDays = Math.round(corridors.filter(c=>c.days).reduce((a,c)=>a+c.days,0)/corridors.filter(c=>c.days).length);
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat-pill"><span class="n">${total}</span><span class="l">Koridor Dipantau</span></div>
+    <div class="stat-pill green"><span class="n">${launched}</span><span class="l">Launched</span></div>
+    <div class="stat-pill amber"><span class="n">${avgDays}</span><span class="l">Rata² Hari Siklus</span></div>
+    <div class="stat-pill red"><span class="n">${atRisk}</span><span class="l">Perlu Perhatian</span></div>
+  `;
+}
+
+function renderGrid(){
+  const grid = document.getElementById('corridorGrid');
+  const gripSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>`;
+  grid.innerHTML = corridors.map((c,i)=>`
+    <div class="card ${selected===i?'active':''}" data-i="${i}" draggable="false">
+      <span class="card-grip" title="Seret untuk memindahkan kartu">${gripSvg}</span>
+      <div class="card-top">
+        <span class="country"><span class="iso-badge">${c.iso}</span>${c.c}</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;padding-right:26px;">
+          ${stageBadge(c)}
+          ${riskBadge(c)}
+        </div>
+      </div>
+      <div class="steps">
+        ${STEPS.map((s,si)=>`<div class="step ${si<c.step?'done':(si===c.step?'current':'')}"></div>`).join('')}
+      </div>
+      <div class="step-label">${c.step>=5?'Selesai — Live':STEPS[Math.min(c.step,4)]}</div>
+      <div class="card-meta">
+        <span>Mulai ${c.start}</span>
+        <span>${c.launch?('Launch '+c.launch):'Belum launch'}</span>
+      </div>
+    </div>
+  `).join('');
+
+  let cardDragSrcI = null;   // source array index
+  let didDrag = false;
+
+  grid.querySelectorAll('.card').forEach(el=>{
+    const grip = el.querySelector('.card-grip');
+
+    // enable native drag only while the grip is held (keeps card clickable elsewhere)
+    grip.addEventListener('mousedown', ()=>{ el.setAttribute('draggable','true'); });
+    grip.addEventListener('mouseup',   ()=>{ el.setAttribute('draggable','false'); });
+    grip.addEventListener('touchstart',()=>{ el.setAttribute('draggable','true'); }, {passive:true});
+    // don't let a grip mousedown also start a text selection / count as card click intent
+    grip.addEventListener('click', e=>{ e.stopPropagation(); });
+
+    el.addEventListener('dragstart', e=>{
+      cardDragSrcI = +el.dataset.i;
+      didDrag = true;
+      el.classList.add('card-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try{ e.dataTransfer.setData('text/plain', String(cardDragSrcI)); }catch(_){}
+    });
+
+    el.addEventListener('dragover', e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      grid.querySelectorAll('.card').forEach(c=>{ if(c!==el) c.classList.remove('card-drop-target'); });
+      if(+el.dataset.i !== cardDragSrcI) el.classList.add('card-drop-target');
+    });
+
+    el.addEventListener('dragleave', ()=>{ el.classList.remove('card-drop-target'); });
+
+    el.addEventListener('drop', e=>{
+      e.preventDefault();
+      const from = cardDragSrcI;
+      const to = +el.dataset.i;
+      if(from===null || from===to) return;
+      // track which corridor object was selected so selection follows the move
+      const selectedObj = (selected!==null) ? corridors[selected] : null;
+      const [moved] = corridors.splice(from, 1);
+      corridors.splice(to, 0, moved);
+      selected = selectedObj ? corridors.indexOf(selectedObj) : null;
+      saveCorridors();
+      renderAll();           // re-render grid, readiness table, and variance in the new order
+    });
+
+    el.addEventListener('dragend', ()=>{
+      grid.querySelectorAll('.card').forEach(c=>{
+        c.classList.remove('card-dragging','card-drop-target');
+        c.setAttribute('draggable','false');
+      });
+      cardDragSrcI = null;
+      setTimeout(()=>{ didDrag = false; }, 0);   // let the trailing click be suppressed first
+    });
+
+    el.addEventListener('click', ()=>{
+      if(didDrag) return;    // ignore the click that fires right after a drag
+      selected = selected===+el.dataset.i ? null : +el.dataset.i;
+      renderGrid(); renderDetail();
+    });
+  });
+}
+
+function barColor(v){ return v>=7.5?'var(--green)': v>=5?'var(--amber)':'var(--red)'; }
+function pct(v){ return Math.max(0, Math.min(100, (v/SCALE_MAX)*100)); }   // skor 0–10 → lebar bar %
+
+function renderDetail(){
+  const panel = document.getElementById('detailPanel');
+  if(selected!==null && !corridors[selected]) selected = null;
+  if(selected===null){
+    panel.innerHTML = `<span class="bl"></span><span class="br"></span><div class="empty-state">Pilih salah satu koridor pada tracker untuk melihat rincian readiness &amp; milestone.</div>`;
+    return;
+  }
+  const c = corridors[selected];
+  const avg = Math.round((c.legal+c.tech+c.industri)/3*10)/10;
+  panel.innerHTML = `
+    <span class="bl"></span><span class="br"></span>
+    <h3><span class="iso-badge">${c.iso}</span> ${c.c}</h3>
+    <div class="dsub">TAHAP: ${c.step>=5?'IMPLEMENTATION — LIVE':STEPS[Math.min(c.step,4)].toUpperCase()}</div>
+
+    <div class="dim-row"><div class="dl"><span title="${SCALE_LEGEND.legal}">Legal</span><b>${c.legal}/10</b></div><div class="bar-track"><div class="bar-fill" style="width:${pct(c.legal)}%;background:${barColor(c.legal)}"></div></div></div>
+    <div class="dim-row"><div class="dl"><span title="${SCALE_LEGEND.tech}">Teknis</span><b>${c.tech}/10</b></div><div class="bar-track"><div class="bar-fill" style="width:${pct(c.tech)}%;background:${barColor(c.tech)}"></div></div></div>
+    <div class="dim-row"><div class="dl"><span title="${SCALE_LEGEND.industri}">Industri</span><b>${c.industri}/10</b></div><div class="bar-track"><div class="bar-fill" style="width:${pct(c.industri)}%;background:${barColor(c.industri)}"></div></div></div>
+    <div class="dim-row"><div class="dl"><span>Rata-rata Readiness</span><b>${avg}/10</b></div><div class="bar-track"><div class="bar-fill" style="width:${pct(avg)}%;background:${barColor(avg)}"></div></div></div>
+
+    <div class="milestones">
+      <div class="mh">Milestone</div>
+      <div class="m-item"><span>Inisiasi (MoU/SBC)</span><span class="mv ok">${c.start}</span></div>
+      <div class="m-item"><span>Target Launch</span><span class="mv ${c.launch?'ok':'late'}">${c.launch||'Belum ditetapkan'}</span></div>
+      <div class="m-item"><span>Durasi Siklus</span><span class="mv ${c.days? (c.days>TARGET_DAYS?'late':'ok') : ''}">${c.days? c.days+' hari' : '—'}</span></div>
+    </div>
+  `;
+}
+
+function renderReadiness(){
+  const body = document.getElementById('readinessBody');
+  body.innerHTML = corridors.map(c=>{
+    const avg = Math.round((c.legal+c.tech+c.industri)/3*10)/10;
+    const cell = (v)=>`<td class="rt-bar-cell"><div class="rt-bar"><div class="bar-track"><div class="bar-fill" style="width:${pct(v)}%;background:${barColor(v)}"></div></div><span class="val">${v}</span></div></td>`;
+    return `<tr><td class="rt-country"><span class="iso-badge">${c.iso}</span> ${c.c}</td>${cell(c.legal)}${cell(c.tech)}${cell(c.industri)}${cell(avg)}</tr>`;
+  }).join('');
+}
+
+function renderScaleLegend(){
+  const el = document.getElementById('scaleLegend');
+  if(!el) return;
+  const colorFor = (v)=> v>=8?'var(--green)': v>=6?'#6cb79a': v>=4?'var(--amber)': v>=2?'#d9a24a':'var(--red)';
+  const chips = SCALE_LEGEND.umum.map(x=>
+    `<div class="sl-chip"><span class="dot" style="background:${colorFor(x.v)}"></span><b>${x.v}</b> ${x.t}</div>`
+  ).join('');
+  const aspect = (label, key)=>`<div class="sl-aspect"><b>${label}</b><span class="ph">${SCALE_LEGEND[key]}</span></div>`;
+  el.innerHTML = `
+    <div class="sl-title">Keterangan Skala Skor 0–10</div>
+    <div class="sl-row">${chips}</div>
+    <div class="sl-aspects">
+      ${aspect('Legal','legal')}
+      ${aspect('Teknis','tech')}
+      ${aspect('Industri','industri')}
+    </div>
+  `;
+}
+
+function elapsedDays(c){
+  // hari berjalan sejak inisiasi hingga hari ini (untuk koridor yang belum launch)
+  if(!c.start) return null;
+  const d = daysBetween(c.start, new Date().toISOString().slice(0,10));
+  return d > 0 ? d : 0;
+}
+
+function renderVariance(){
+  // koridor selesai: pakai durasi aktual (start→launch); koridor berjalan: pakai hari berjalan (start→hari ini)
+  const done = corridors.filter(c=>c.days);
+  const running = corridors.filter(c=>!c.days && c.step<5 && c.start).map(c=>({c, e:elapsedDays(c)})).filter(x=>x.e!==null);
+
+  const allVals = [...done.map(c=>c.days), ...running.map(x=>x.e), TARGET_DAYS];
+  const maxDays = Math.max(...allVals) * 1.08;
+  const targetPct = (TARGET_DAYS/maxDays)*100;
+
+  const doneRows = done.map(c=>{
+    const pct = (c.days/maxDays)*100;
+    const over = c.days > TARGET_DAYS;
+    return `
+      <div class="v-row">
+        <div class="v-name"><span class="iso-badge">${c.iso}</span> ${c.c}</div>
+        <div class="v-track">
+          <div class="v-bar ${over?'over':'under'}" style="width:${pct}%"></div>
+          <div class="v-target" style="left:${targetPct}%" data-label="target &lt;365h"></div>
+        </div>
+        <div class="v-val ${over?'over':'under'}">${c.days} hari<small>selesai</small></div>
+      </div>`;
+  }).join('');
+
+  const runRows = running.map(({c,e})=>{
+    const pct = Math.min((e/maxDays)*100, 100);
+    const overTarget = e > TARGET_DAYS;
+    return `
+      <div class="v-row">
+        <div class="v-name"><span class="iso-badge">${c.iso}</span> ${c.c} <span class="v-mini">Berjalan</span></div>
+        <div class="v-track">
+          <div class="v-bar progress" style="width:${pct}%"></div>
+          <div class="v-target" style="left:${targetPct}%" data-label="target &lt;365h"></div>
+        </div>
+        <div class="v-val prog">${e} hari<small>${overTarget?'lewat target':'berjalan'}</small></div>
+      </div>`;
+  }).join('');
+
+  const list = document.getElementById('varianceList');
+  list.innerHTML = doneRows + runRows || `<div class="empty-state">Belum ada data timeline.</div>`;
+}
+
+function renderAlerts(){
+  const alerts = [];
+  corridors.forEach(c=>{
+    computeAlerts(c).forEach(a=>{
+      alerts.push({sev:a.sev, title:`${c.iso} ${c.c} — ${a.title}`, body:a.body});
+    });
+  });
+  document.getElementById('alertList').innerHTML = alerts.map(a=>`
+    <div class="alert sev-${a.sev}">
+      <span class="a-icon">${a.sev==='high'?'HIGH':'MED'}</span>
+      <div class="a-body"><b>${a.title}</b><p>${a.body}</p></div>
+    </div>
+  `).join('') || `<div class="empty-state">Tidak ada alert aktif.</div>`;
+}
+
+function renderAll(){
+  renderStats();
+  renderGrid();
+  renderDetail();
+  renderReadiness();
+  renderScaleLegend();
+  renderVariance();
+  renderAlerts();
+}
+
+// ---------- helpers shared by the edit page ----------
+function clamp(v,min,max){ v = +v; if(isNaN(v)) return min; return Math.max(min, Math.min(max, v)); }
+function daysBetween(a,b){ const d = (new Date(b) - new Date(a)) / 86400000; return Math.round(d); }
+function stepOptionsHtml(currentStep){
+  const opts = STEPS.map((s,si)=>`<option value="${si}" ${currentStep===si?'selected':''}>Tahap ${si+1} — ${s}</option>`).join('');
+  return opts + `<option value="5" ${currentStep===5?'selected':''}>Selesai — Live</option>`;
+}
+
+let toastTimer = null;
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' toast-error' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.className = 'toast'; }, 3200);
+}
+
+// ---------- US1: edit existing corridor index values ----------
+function renderEditTable(){
+  const el = document.getElementById('editTable');
+  el.innerHTML = `
+    <div class="edit-table-wrap">
+    <table class="edit-table">
+      <thead><tr>
+        <th>ISO</th><th>Negara</th><th>Tahap</th><th>Mulai</th><th>Launch</th>
+        <th>Legal</th><th>Teknis</th><th>Industri</th><th></th>
+      </tr></thead>
+      <tbody>
+        ${corridors.map((c,i)=>`
+          <tr data-i="${i}">
+            <td><input class="ef-iso" value="${c.iso}" maxlength="3" style="width:52px"></td>
+            <td><input class="ef-name" value="${c.c}" style="min-width:140px"></td>
+            <td><select class="ef-step">${stepOptionsHtml(c.step)}</select></td>
+            <td><input type="date" class="ef-start" value="${c.start||''}"></td>
+            <td><input type="date" class="ef-launch" value="${c.launch||''}"></td>
+            <td><input type="number" min="0" max="10" step="1" class="ef-legal" value="${c.legal}" style="width:56px"></td>
+            <td><input type="number" min="0" max="10" step="1" class="ef-tech" value="${c.tech}" style="width:56px"></td>
+            <td><input type="number" min="0" max="10" step="1" class="ef-industri" value="${c.industri}" style="width:56px"></td>
+            <td><button class="ef-remove" type="button" title="Hapus koridor">✕</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    </div>
+  `;
+
+  el.querySelectorAll('.ef-remove').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const tr = e.target.closest('tr');
+      const i = +tr.dataset.i;
+      const name = corridors[i].c;
+      if(confirm(`Hapus koridor ${name}?`)){
+        corridors.splice(i,1);
+        saveCorridors();
+        selected = null;
+        renderEditTable();
+        showToast(`Koridor ${name} dihapus.`);
+      }
+    });
+  });
+}
+
+function saveEditTable(){
+  const el = document.getElementById('editTable');
+  const usedIso = new Set();
+  let ok = true;
+  el.querySelectorAll('tbody tr').forEach(tr=>{
+    const i = +tr.dataset.i;
+    const c = corridors[i];
+    const iso = tr.querySelector('.ef-iso').value.trim().toUpperCase().slice(0,3);
+    const name = tr.querySelector('.ef-name').value.trim();
+    if(!iso || !name){ ok = false; return; }
+    if(usedIso.has(iso)){ ok = false; return; }
+    usedIso.add(iso);
+    c.iso = iso;
+    c.c = name;
+    c.step = +tr.querySelector('.ef-step').value;
+    c.start = tr.querySelector('.ef-start').value || c.start;
+    c.launch = tr.querySelector('.ef-launch').value || null;
+    c.legal = clamp(tr.querySelector('.ef-legal').value, 0, 10);
+    c.tech = clamp(tr.querySelector('.ef-tech').value, 0, 10);
+    c.industri = clamp(tr.querySelector('.ef-industri').value, 0, 10);
+    c.days = (c.start && c.launch) ? daysBetween(c.start, c.launch) : null;
+  });
+  if(!ok){
+    showToast('Setiap koridor perlu Kode ISO (unik) dan Nama Negara.', true);
+    return;
+  }
+  saveCorridors();
+  selected = null;
+  showToast('Perubahan tersimpan.');
+}
+
+// ---------- US2: add a new corridor ----------
+function bindAddForm(){
+  const select = document.getElementById('addStepSelect');
+  select.innerHTML = stepOptionsHtml(0);
+
+  const form = document.getElementById('addForm');
+  form.onsubmit = (e)=>{
+    e.preventDefault();
+    const iso = form.iso.value.trim().toUpperCase().slice(0,3);
+    const name = form.name.value.trim();
+    if(!iso || !name){ showToast('Kode ISO dan Nama Negara wajib diisi.', true); return; }
+    if(corridors.some(c=>c.iso===iso)){ showToast(`Kode ISO "${iso}" sudah dipakai koridor lain.`, true); return; }
+    const start = form.start.value || new Date().toISOString().slice(0,10);
+    const launch = form.launch.value || null;
+    const step = +form.step.value;
+    const legal = clamp(form.legal.value, 0, 10);
+    const tech = clamp(form.tech.value, 0, 10);
+    const industri = clamp(form.industri.value, 0, 10);
+    corridors.push({
+      c: name, iso, step, start, launch,
+      days: launch ? daysBetween(start, launch) : null,
+      legal, tech, industri
+    });
+    saveCorridors();
+    form.reset();
+    select.innerHTML = stepOptionsHtml(0);
+    renderEditTable();
+    showToast(`Koridor ${name} (${iso}) ditambahkan.`);
+  };
+}
+
+// ---------- data tools: export / import / reset ----------
+function bindToolButtons(){
+  document.getElementById('exportBtn').onclick = ()=>{
+    const blob = new Blob([JSON.stringify(corridors, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'qris-step-up-corridors.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  document.getElementById('importFile').onchange = (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const parsed = JSON.parse(reader.result);
+        if(!Array.isArray(parsed) || !parsed.length) throw new Error('File harus berisi array koridor.');
+        corridors = parsed;
+        saveCorridors();
+        selected = null;
+        renderEditTable();
+        showToast('Data berhasil diimpor.');
+      }catch(err){
+        showToast('Gagal membaca file JSON: ' + err.message, true);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  document.getElementById('resetBtn').onclick = ()=>{
+    if(confirm('Reset seluruh data koridor ke data bawaan? Perubahan yang belum diekspor akan hilang.')){
+      corridors = JSON.parse(JSON.stringify(DEFAULT_CORRIDORS));
+      saveCorridors();
+      selected = null;
+      renderEditTable();
+      showToast('Data direset ke default.');
+    }
+  };
+
+  document.getElementById('saveAllBtn').onclick = saveEditTable;
+}
+
+function renderEditPage(){
+  renderEditTable();
+  bindAddForm();
+  bindToolButtons();
+}
+
+// ---------- drag & drop: rearrange dashboard sections ----------
+function saveSectionOrder(){
+  const cont = document.getElementById('dashSections');
+  const order = [...cont.children].map(s=>s.dataset.key);
+  try{ localStorage.setItem(ORDER_KEY, JSON.stringify(order)); }catch(e){}
+}
+function restoreSectionOrder(){
+  const cont = document.getElementById('dashSections');
+  if(!cont) return;
+  let order = null;
+  try{ order = JSON.parse(localStorage.getItem(ORDER_KEY)); }catch(e){}
+  if(!Array.isArray(order)) return;
+  order.forEach(key=>{
+    const sec = cont.querySelector(`.dash-section[data-key="${key}"]`);
+    if(sec) cont.appendChild(sec);   // re-append in saved order
+  });
+}
+
+let dragSrc = null;
+function initSectionDnD(){
+  const cont = document.getElementById('dashSections');
+  if(!cont || cont.dataset.dndBound) return;
+  cont.dataset.dndBound = "1";
+
+  cont.querySelectorAll('.drag-handle').forEach(h=>{
+    const sec = h.closest('.dash-section');
+    // handle enables dragging only while grabbed (so text stays selectable elsewhere)
+    h.addEventListener('mousedown', ()=>{ sec.setAttribute('draggable','true'); });
+    h.addEventListener('mouseup',   ()=>{ sec.setAttribute('draggable','false'); });
+    h.addEventListener('touchstart',()=>{ sec.setAttribute('draggable','true'); }, {passive:true});
+  });
+
+  cont.addEventListener('dragstart', e=>{
+    const sec = e.target.closest('.dash-section');
+    if(!sec){ return; }
+    dragSrc = sec;
+    sec.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try{ e.dataTransfer.setData('text/plain', sec.dataset.key); }catch(_){}
+  });
+
+  cont.addEventListener('dragover', e=>{
+    e.preventDefault();
+    const over = e.target.closest('.dash-section');
+    cont.querySelectorAll('.dash-section').forEach(s=>{ if(s!==over) s.classList.remove('drop-target'); });
+    if(!over || over===dragSrc) return;
+    over.classList.add('drop-target');
+    const r = over.getBoundingClientRect();
+    const after = e.clientY > r.top + r.height/2;
+    if(after){ over.after(dragSrc); } else { over.before(dragSrc); }
+  });
+
+  cont.addEventListener('dragend', ()=>{
+    cont.querySelectorAll('.dash-section').forEach(s=>{
+      s.classList.remove('dragging','drop-target');
+      s.setAttribute('draggable','false');
+    });
+    dragSrc = null;
+    saveSectionOrder();
+  });
+
+  cont.addEventListener('drop', e=>{ e.preventDefault(); });
+}
+
+// ---------- routing between Tracker view and Edit view ----------
+function route(){
+  const isEdit = location.hash === '#edit';
+  document.getElementById('trackerView').style.display = isEdit ? 'none' : '';
+  document.getElementById('editView').style.display = isEdit ? '' : 'none';
+  document.getElementById('navToggleBtn').textContent = isEdit ? '← Kembali ke Tracker' : 'Edit Data →';
+  if(isEdit){ renderEditPage(); } else { renderAll(); restoreSectionOrder(); initSectionDnD(); }
+  window.scrollTo(0,0);
+}
+document.getElementById('navToggleBtn').addEventListener('click', ()=>{
+  location.hash = (location.hash === '#edit') ? '' : '#edit';
+});
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
