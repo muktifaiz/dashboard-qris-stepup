@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QRIS STEP UP — Cross-Border Monitoring Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#F5F7FB;
@@ -14,24 +14,32 @@
     --panel-raised:#FFFFFF;
     --border:rgba(20,32,60,0.10);
     --border-strong:rgba(20,32,60,0.18);
-    --text-1:#1B2437;
-    --text-2:#5A6478;
-    --text-3:#8A93A6;
-    --red:#D41B3C;
-    --red-dim:rgba(212,27,60,0.10);
-    --amber:#C98A16;
-    --amber-dim:rgba(201,138,22,0.12);
-    --green:#2E9E77;
-    --green-dim:rgba(46,158,119,0.12);
-    --blue:#2E6DB4;
-    --blue-dim:rgba(46,109,180,0.12);
-    --track:#E7ECF4;
-    --shadow-sm:0 1px 2px rgba(20,32,60,0.05);
-    --shadow-md:0 4px 14px rgba(20,32,60,0.07);
-    --shadow-lg:0 10px 30px rgba(20,32,60,0.12);
+    --text-1:#131B2B;
+    --text-2:#434D63;
+    --text-3:#616B80;
+    --red:#C81A39;
+    --red-dim:rgba(200,26,57,0.12);
+    --amber:#B57D10;
+    --amber-dim:rgba(181,125,16,0.14);
+    --green:#1F8F67;
+    --green-dim:rgba(31,143,103,0.14);
+    --blue:#1E63C7;
+    --blue-strong:#174FA3;
+    --blue-dim:rgba(30,99,199,0.12);
+    --accent:var(--blue);
+    --track:#E3E9F3;
+    --shadow-sm:0 1px 2px rgba(20,32,60,0.06);
+    --shadow-md:0 4px 14px rgba(20,32,60,0.08);
+    --shadow-lg:0 10px 30px rgba(20,32,60,0.14);
+    /* radius scale — inner = outer − padding (lihat .card-grip & kontrol) */
+    --r-section:18px;
+    --r-card:14px;
+    --r-ctrl:10px;
+    --r-chip:8px;
     --font-display:'Space Grotesk',sans-serif;
     --font-body:'IBM Plex Sans',sans-serif;
-    --font-mono:'IBM Plex Mono',monospace;
+    /* mono dihapus — semua elemen memakai font sans */
+    --font-mono:'IBM Plex Sans',sans-serif;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -58,11 +66,11 @@
     border-bottom:1px solid var(--border);
   }
   .eyebrow{
-    font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
-    color:var(--red);text-transform:uppercase;margin:0 0 10px;
+    font-family:var(--font-body);font-weight:600;font-size:11px;letter-spacing:.12em;
+    color:var(--blue);text-transform:uppercase;margin:0 0 10px;
     display:flex;align-items:center;gap:8px;
   }
-  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--red);}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
   h1{
     font-family:var(--font-display);font-weight:700;
     font-size:clamp(24px,3vw,34px);margin:0 0 6px;letter-spacing:-0.01em;
@@ -81,7 +89,7 @@
 
   /* ---------- section headers ---------- */
   .section-head{display:flex;align-items:baseline;gap:12px;margin:44px 0 16px;}
-  .section-head .idx{font-family:var(--font-mono);color:var(--text-3);font-size:12px;}
+  .section-head .idx{font-family:var(--font-display);font-weight:700;color:var(--blue);font-size:13px;letter-spacing:.02em;}
   .section-head h2{font-family:var(--font-display);font-size:19px;margin:0;font-weight:600;}
   .section-head p{color:var(--text-2);font-size:13px;margin:2px 0 0;}
   .section-head .line{flex:1;height:1px;background:var(--border);align-self:center;}
@@ -92,8 +100,8 @@
 
   .corridor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
   .card{
-    background:var(--panel);border:1px solid var(--border);border-radius:16px;
-    padding:16px 16px 14px;cursor:pointer;box-shadow:var(--shadow-sm);
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--r-card);
+    padding:16px;cursor:pointer;box-shadow:var(--shadow-sm);
     transition:box-shadow .2s ease,transform .15s ease,border-color .2s ease,opacity .2s ease;
     position:relative;
   }
@@ -102,7 +110,8 @@
   .card.card-dragging{opacity:.45;box-shadow:var(--shadow-lg);transform:scale(.98);}
   .card.card-drop-target{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
   .card .card-grip{
-    position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:7px;
+    /* inset 8px dari sudut kartu → radius = r-card(14) − 8 = 6px (konsentris) */
+    position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:6px;
     display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--text-3);
     border:1px solid var(--border);background:var(--panel-alt);opacity:0;
     transition:opacity .2s ease,color .2s ease,border-color .2s ease;
@@ -111,33 +120,42 @@
   .card .card-grip:hover{color:var(--blue);border-color:var(--blue);}
   .card .card-grip:active{cursor:grabbing;}
   .card .card-grip svg{width:12px;height:12px;pointer-events:none;}
-  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;padding-right:28px;}
   .country{font-family:var(--font-display);font-weight:600;font-size:16px;display:flex;align-items:center;gap:8px;}
   .iso-badge{
-    font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.03em;
-    padding:2px 6px;border:1px solid var(--border-strong);border-radius:6px;
+    font-family:var(--font-body);font-size:10px;font-weight:700;letter-spacing:.03em;
+    padding:2px 6px;border:1px solid var(--border-strong);border-radius:var(--r-chip);
     color:var(--text-2);background:var(--panel-alt);
   }
-  .badge{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;padding:3px 8px;border-radius:999px;text-transform:uppercase;white-space:nowrap;}
-  .badge.launched{background:var(--green-dim);color:var(--green);}
-  .badge.progress{background:var(--blue-dim);color:var(--blue);}
-  .badge.risk{background:var(--amber-dim);color:var(--amber);}
-  .badge.alert{background:var(--red-dim);color:var(--red);}
+  /* semua badge berukuran identik: tinggi & padding sama, hanya warna/teks berbeda
+     (kelas memakai prefiks b- agar tidak bentrok dengan .alert kartu Early Warning) */
+  .badge{
+    font-family:var(--font-body);font-size:10px;font-weight:700;letter-spacing:.05em;line-height:1;
+    height:22px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;
+    border-radius:999px;text-transform:uppercase;white-space:nowrap;box-sizing:border-box;
+  }
+  .badge.b-launched{background:var(--green-dim);color:var(--green);}
+  .badge.b-progress{background:var(--blue-dim);color:var(--blue);}
+  .badge.b-risk{background:var(--amber-dim);color:var(--amber);}
+  .badge.b-alert{background:var(--red-dim);color:var(--red);}
+  /* baris badge: di bawah nama negara, di atas progress bar */
+  .badge-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;}
 
   .steps{display:flex;gap:4px;margin-bottom:10px;}
   .step{flex:1;height:5px;border-radius:999px;background:var(--track);}
   .step.done{background:var(--green);}
   .step.current{background:var(--amber);}
-  .step-label{font-family:var(--font-mono);font-size:10px;color:var(--text-3);}
+  /* status koridor: hitam & tebal */
+  .step-label{font-family:var(--font-body);font-size:12px;font-weight:700;color:var(--text-1);}
 
-  .card-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-top:10px;font-family:var(--font-mono);}
+  .card-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-top:10px;font-family:var(--font-body);}
 
   .detail-panel{
-    background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--r-card);padding:20px;
     position:sticky;top:20px;box-shadow:var(--shadow-sm);
   }
-  .detail-panel h3{font-family:var(--font-display);margin:0 0 3px;font-size:17px;}
-  .detail-panel .dsub{font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:16px;}
+  .detail-panel h3{font-family:var(--font-display);margin:0 0 4px;font-size:17px;}
+  .detail-panel .dsub{font-size:11px;font-weight:600;color:var(--blue);letter-spacing:.03em;margin-bottom:16px;}
   .dim-row{margin-bottom:12px;}
   .dim-row .dl{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;color:var(--text-2);}
   .dim-row .dl b{color:var(--text-1);font-family:var(--font-mono);}
@@ -257,12 +275,6 @@
   }
   .drag-hint svg{width:13px;height:13px;}
 
-  footer{
-    margin-top:50px;padding-top:18px;border-top:1px solid var(--border);
-    font-size:11px;color:var(--text-3);line-height:1.7;font-family:var(--font-mono);
-  }
-  footer b{color:var(--text-2);}
-
   /* ---------- nav toggle ---------- */
   .nav-toggle{
     font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;
@@ -298,16 +310,25 @@
 
   .edit-actions{display:flex;align-items:center;gap:14px;margin-top:14px;}
   .btn{
-    font-family:var(--font-mono);font-size:12px;letter-spacing:.03em;
-    padding:9px 16px;border-radius:10px;border:1px solid transparent;
+    position:relative;font-family:var(--font-body);font-size:12px;letter-spacing:.02em;
+    padding:10px 18px;border-radius:var(--r-ctrl);border:1px solid transparent;
     background:var(--blue);color:#fff;font-weight:600;cursor:pointer;box-shadow:var(--shadow-sm);
-    transition:filter .2s ease,box-shadow .2s ease,border-color .2s ease;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    transition:transform .08s ease,filter .2s ease,box-shadow .2s ease,border-color .2s ease,background .25s ease;
   }
   .btn:hover{filter:brightness(1.06);box-shadow:var(--shadow-md);}
+  /* #4 animasi klik: tekan + pantul */
+  .btn:active{transform:scale(.95);box-shadow:var(--shadow-sm);}
   .btn.danger{background:var(--red);color:#fff;}
   .btn.ghost{background:var(--panel);color:var(--text-1);border-color:var(--border-strong);}
   .btn.ghost:hover{border-color:var(--blue);color:var(--blue);filter:none;}
-  .saved-note{font-size:11px;color:var(--text-3);font-family:var(--font-mono);}
+  .btn[disabled]{cursor:default;opacity:.85;filter:none;transform:none;}
+  /* #5 loading state pada tombol */
+  .btn .spin{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;animation:spin .6s linear infinite;}
+  .btn.is-success{background:var(--green);animation:btnpop .4s ease;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes btnpop{0%{transform:scale(.9);}50%{transform:scale(1.04);}100%{transform:scale(1);}}
+  .saved-note{font-size:11px;color:var(--text-2);font-family:var(--font-body);}
 
   /* ---------- edit page: add-corridor form ---------- */
   .edit-form{
@@ -328,9 +349,30 @@
   }
   .toast.show{opacity:1;height:auto;padding:10px 14px;border-color:var(--border);}
   .toast.toast-error{border-color:var(--red);color:var(--red);}
+
+  /* ---------- #5 loading states ---------- */
+  .load-overlay{
+    position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    background:rgba(245,247,251,0.82);backdrop-filter:blur(2px);
+    opacity:1;transition:opacity .35s ease;
+  }
+  .load-overlay.hide{opacity:0;pointer-events:none;}
+  .load-spinner{width:38px;height:38px;border-radius:50%;border:3px solid var(--blue-dim);border-top-color:var(--blue);animation:spin .7s linear infinite;}
+  .load-overlay .lt{font-size:12px;font-weight:600;color:var(--blue);letter-spacing:.06em;text-transform:uppercase;}
+  /* skeleton shimmer dipakai saat merender ulang isi */
+  @keyframes shimmer{0%{background-position:-400px 0;}100%{background-position:400px 0;}}
+  .skeleton{
+    border-radius:var(--r-chip);
+    background:linear-gradient(90deg,var(--track) 25%,#eef2f8 37%,var(--track) 63%);
+    background-size:800px 100%;animation:shimmer 1.3s linear infinite;
+  }
+  .sk-card{height:150px;border-radius:var(--r-card);}
+  .is-rendering{opacity:0;}
+  #dashSections,#editView{transition:opacity .25s ease;}
 </style>
 </head>
 <body>
+<div id="loadOverlay" class="load-overlay"><div class="load-spinner"></div><div class="lt">Memuat dashboard…</div></div>
 <div class="wrap">
 
   <header class="top">
@@ -407,10 +449,6 @@
     </section>
   </div>
 
-  <footer>
-    <div><b>Sumber referensi:</b> PASTI SIP_Action Plan DKSP_QRIS STEP UP.docx · Dokumen Pendukung_PASTI SIP_DKSP.pdf</div>
-    <div><b>Catatan:</b> koridor Thailand–Tiongkok menggunakan tanggal dari Action Plan §1.2. Koridor Saudi, Hong Kong, Uzbekistan, Timor Leste, serta seluruh skor readiness bersifat ilustratif untuk mendemonstrasikan fungsi dashboard.</div>
-  </footer>
 </div>
 <!-- /trackerView -->
 
@@ -557,14 +595,14 @@ function computeAlerts(c){
 }
 
 function stageBadge(c){
-  return c.step>=5 ? `<span class="badge launched">Launched</span>` : `<span class="badge progress">In Progress</span>`;
+  return c.step>=5 ? `<span class="badge b-launched">Launched</span>` : `<span class="badge b-progress">In Progress</span>`;
 }
 
 function riskBadge(c){
   const alerts = computeAlerts(c);
   if(!alerts.length) return '';
   const highest = alerts.some(a=>a.sev==="high") ? "high" : "med";
-  return highest==="high" ? `<span class="badge alert">Alert</span>` : `<span class="badge risk">At Risk</span>`;
+  return highest==="high" ? `<span class="badge b-alert">Alert</span>` : `<span class="badge b-risk">At Risk</span>`;
 }
 
 function renderStats(){
@@ -588,10 +626,10 @@ function renderGrid(){
       <span class="card-grip" title="Seret untuk memindahkan kartu">${gripSvg}</span>
       <div class="card-top">
         <span class="country"><span class="iso-badge">${c.iso}</span>${c.c}</span>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;padding-right:26px;">
-          ${stageBadge(c)}
-          ${riskBadge(c)}
-        </div>
+      </div>
+      <div class="badge-row">
+        ${stageBadge(c)}
+        ${riskBadge(c)}
       </div>
       <div class="steps">
         ${STEPS.map((s,si)=>`<div class="step ${si<c.step?'done':(si===c.step?'current':'')}"></div>`).join('')}
@@ -883,11 +921,35 @@ function saveEditTable(){
   });
   if(!ok){
     showToast('Setiap koridor perlu Kode ISO (unik) dan Nama Negara.', true);
-    return;
+    return false;
   }
   saveCorridors();
   selected = null;
   showToast('Perubahan tersimpan.');
+  return true;
+}
+
+// #4 + #5: animasi klik & loading pada tombol Simpan
+function handleSaveClick(){
+  const btn = document.getElementById('saveAllBtn');
+  if(btn.dataset.busy) return;
+  // validasi dulu tanpa menyimpan ganda? langsung: tampilkan loading, lalu simpan
+  btn.dataset.busy = '1';
+  btn.disabled = true;
+  const label = btn.textContent;
+  btn.innerHTML = `<span class="spin"></span> Menyimpan…`;
+  setTimeout(()=>{
+    const ok = saveEditTable();
+    btn.disabled = false;
+    delete btn.dataset.busy;
+    if(ok){
+      btn.classList.add('is-success');
+      btn.innerHTML = `✓ Tersimpan`;
+      setTimeout(()=>{ btn.classList.remove('is-success'); btn.textContent = label; }, 1400);
+    }else{
+      btn.textContent = label;
+    }
+  }, 550);
 }
 
 // ---------- US2: add a new corridor ----------
@@ -963,7 +1025,7 @@ function bindToolButtons(){
     }
   };
 
-  document.getElementById('saveAllBtn').onclick = saveEditTable;
+  document.getElementById('saveAllBtn').onclick = handleSaveClick;
 }
 
 function renderEditPage(){
@@ -1039,17 +1101,28 @@ function initSectionDnD(){
 // ---------- routing between Tracker view and Edit view ----------
 function route(){
   const isEdit = location.hash === '#edit';
-  document.getElementById('trackerView').style.display = isEdit ? 'none' : '';
-  document.getElementById('editView').style.display = isEdit ? '' : 'none';
+  const tracker = document.getElementById('trackerView');
+  const edit = document.getElementById('editView');
+  tracker.style.display = isEdit ? 'none' : '';
+  edit.style.display = isEdit ? '' : 'none';
   document.getElementById('navToggleBtn').textContent = isEdit ? '← Kembali ke Tracker' : 'Edit Data →';
+
+  const active = isEdit ? edit : tracker;
+  active.classList.add('is-rendering');          // sembunyikan dulu → fade in setelah render
   if(isEdit){ renderEditPage(); } else { renderAll(); restoreSectionOrder(); initSectionDnD(); }
+  requestAnimationFrame(()=>{ active.classList.remove('is-rendering'); });
   window.scrollTo(0,0);
 }
 document.getElementById('navToggleBtn').addEventListener('click', ()=>{
   location.hash = (location.hash === '#edit') ? '' : '#edit';
 });
 window.addEventListener('hashchange', route);
+
+// Render awal dengan loading overlay
 route();
+requestAnimationFrame(()=>{
+  setTimeout(()=>{ document.getElementById('loadOverlay').classList.add('hide'); }, 500);
+});
 </script>
 </body>
 </html>
