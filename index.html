@@ -369,22 +369,176 @@
   .sk-card{height:150px;border-radius:var(--r-card);}
   .is-rendering{opacity:0;}
   #dashSections,#editView{transition:opacity .25s ease;}
+
+  /* =========================================================
+     REDESIGN v2 — hierarki, satu identitas, data sebagai bintang
+     ========================================================= */
+  :root{ --navy:#111A3D; --navy-2:#1E2E6B; --ink:#0E1427; }
+  body{
+    background:
+      radial-gradient(1100px 420px at 50% -220px, rgba(30,99,199,0.08), transparent 70%),
+      var(--bg);
+  }
+  .wrap{max-width:1180px;padding:22px 24px 90px;}
+  *{font-variant-numeric:tabular-nums;}
+
+  /* ---------- MASTHEAD (satu gradien, dipakai sekali) ---------- */
+  header.masthead{
+    position:relative;overflow:hidden;color:#fff;
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 60%,#2A3F8F 100%);
+    border-radius:24px;padding:26px 30px 0;margin:6px 0 46px;
+    box-shadow:0 18px 44px rgba(17,26,61,0.28);
+    border:0;display:block;
+  }
+  .masthead .mh-glow{
+    position:absolute;top:-140px;right:-80px;width:420px;height:420px;border-radius:50%;
+    background:radial-gradient(circle,rgba(86,130,230,0.55),transparent 62%);pointer-events:none;
+  }
+  .masthead .mh-glow::after{
+    content:"";position:absolute;left:-260px;top:120px;width:360px;height:360px;border-radius:50%;
+    background:radial-gradient(circle,rgba(31,143,103,0.30),transparent 60%);
+  }
+  .mh-top{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;}
+  .masthead .eyebrow{color:#9FB4EC;margin:0;}
+  .masthead .eyebrow .dot{background:#6E8EF0;box-shadow:0 0 0 4px rgba(110,142,240,0.25);}
+  .mh-body{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:40px;flex-wrap:wrap;padding:6px 0 4px;}
+  .mh-headline h1{
+    font-family:var(--font-display);font-weight:700;color:#fff;
+    font-size:clamp(30px,3.6vw,46px);line-height:1.05;letter-spacing:-0.02em;margin:0 0 14px;
+  }
+  .mh-headline .sub{color:#B9C6EC;font-size:16px;max-width:460px;line-height:1.5;margin:0;}
+  /* focal stat */
+  .mh-focal{min-width:200px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;}
+  .fs-num{font-family:var(--font-display);line-height:0.88;letter-spacing:-0.02em;}
+  .fs-num b{font-size:80px;font-weight:700;color:#fff;}
+  .fs-num .fs-den{font-size:28px;font-weight:600;color:#8FA4DA;margin-left:6px;}
+  .fs-label{font-size:15px;color:#C7D2F0;margin-top:6px;}
+  .fs-label strong{color:#fff;font-weight:700;}
+  /* metric strip — tenang, di dalam masthead bawah */
+  .mh-metrics{
+    position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);
+    margin:26px -30px 0;padding:16px 30px;border-top:1px solid rgba(255,255,255,0.12);
+    background:rgba(8,12,30,0.22);
+  }
+  .ms-item{display:flex;flex-direction:column;gap:2px;padding-right:18px;}
+  .ms-item + .ms-item{border-left:1px solid rgba(255,255,255,0.10);padding-left:22px;}
+  .ms-n{font-family:var(--font-display);font-size:24px;font-weight:700;color:#fff;line-height:1;}
+  .ms-l{font-size:11px;color:#9FB0DA;letter-spacing:.02em;}
+  .ms-item.ms-warn .ms-n{color:#FF9DAB;}
+  @media(max-width:860px){
+    .mh-metrics{grid-template-columns:repeat(2,1fr);gap:14px 0;}
+    .ms-item:nth-child(3){border-left:0;padding-left:0;}
+    .mh-focal{text-align:left;}
+    .fs-meter{margin-left:0;}
+  }
+  @media(max-width:560px){
+    header.masthead{padding:22px 20px 0;}
+    .mh-metrics{margin:22px -20px 0;padding:16px 20px;}
+  }
+
+  .nav-toggle{
+    background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.28);
+    backdrop-filter:blur(4px);box-shadow:none;
+  }
+  .nav-toggle:hover{background:rgba(255,255,255,0.2);border-color:#fff;color:#fff;}
+
+  /* ---------- sections jadi ringan: data yang jadi kartu, bukan pembungkusnya ---------- */
+  #dashSections .dash-section{
+    background:transparent;border:0;box-shadow:none;border-radius:0;
+    padding:0;margin:0 0 52px;
+  }
+  #dashSections .dash-section.dragging{opacity:.45;}
+  #dashSections .dash-section.drop-target{box-shadow:none;}
+  #dashSections .dash-section.drop-target .section-head{box-shadow:inset 0 0 0 2px var(--blue-dim);border-radius:12px;}
+
+  /* header seksi: tanpa nomor 01/02, tanpa garis penuh — hanya tipografi & ruang */
+  #dashSections .section-head{display:flex;align-items:center;gap:12px;margin:0 0 20px;}
+  #dashSections .section-head .idx,
+  #dashSections .section-head .line{display:none;}
+  #dashSections .section-head h2{font-size:23px;font-weight:700;letter-spacing:-0.01em;}
+  #dashSections .section-head p{font-size:13px;color:var(--text-2);margin-top:3px;max-width:620px;}
+  #dashSections .section-head .drag-handle{opacity:0;transition:opacity .2s ease;}
+  #dashSections .dash-section:hover .section-head .drag-handle{opacity:1;}
+
+  /* tracker = hero: beri sedikit lebih besar & lapang */
+  .tracker-layout{grid-template-columns:1fr 320px;gap:22px;}
+  .corridor-grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;}
+  .card{padding:18px;border-radius:16px;}
+  /* animasi kartu yang baru dipindah → perpindahan langsung terlihat */
+  .card.card-moved{animation:cardPop .6s ease;position:relative;z-index:2;}
+  @keyframes cardPop{
+    0%{transform:scale(.95);box-shadow:0 0 0 0 rgba(30,99,199,0);}
+    40%{transform:scale(1.025);box-shadow:0 0 0 4px var(--blue-dim),var(--shadow-md);}
+    100%{transform:scale(1);box-shadow:var(--shadow-sm);}
+  }
+  .card .steps{gap:5px;margin-bottom:12px;}
+  .card .step{height:6px;}
+  .detail-panel{border-radius:18px;padding:22px;border-color:transparent;box-shadow:var(--shadow-md);}
+
+  /* readiness & variance & alerts duduk di atas kanvas, bukan kartu tebal */
+  .readiness-table th{font-size:11px;}
+  .scale-legend{background:transparent;border-style:dashed;}
+  .drag-hint{
+    background:var(--panel);border:1px solid var(--border);border-radius:999px;
+    padding:8px 14px;width:fit-content;color:var(--text-2);box-shadow:var(--shadow-sm);
+    margin:0 0 30px;
+  }
+  .drag-hint svg{color:var(--blue);}
+
+  /* ---------- variance: satu legenda, bukan label berulang ---------- */
+  .v-legend{
+    display:flex;align-items:center;gap:8px;margin:0 0 16px;
+    font-size:11.5px;color:var(--text-2);
+  }
+  .v-legend-mark{width:2px;height:14px;background:var(--text-2);border-radius:2px;display:inline-block;}
+  .v-target::after{display:none;}  /* label per-baris dimatikan */
+  .v-row{grid-template-columns:160px 1fr 104px;}
+
+  /* ---------- detail panel yang dipoles ---------- */
+  .detail-panel h3{display:flex;align-items:center;gap:9px;font-size:18px;margin:0 0 12px;}
+  .dp-badges{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;}
+  .dp-stage{
+    background:linear-gradient(135deg,rgba(30,99,199,0.08),rgba(30,99,199,0.03));
+    border:1px solid var(--blue-dim);border-radius:14px;padding:13px 15px;margin-bottom:20px;
+  }
+  .dp-stage-mini{display:flex;gap:4px;margin-bottom:9px;}
+  .dp-stage-mini .s{flex:1;height:6px;border-radius:999px;background:var(--track);}
+  .dp-stage-mini .s.done{background:var(--green);}
+  .dp-stage-mini .s.cur{background:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
+  .dp-stage-now{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);}
+  .dp-stage-name{font-size:14px;font-weight:700;color:var(--text-1);margin-top:2px;}
+  .dp-group{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);margin:0 0 11px;}
+  .detail-panel .dim-row{margin-bottom:13px;}
+  .detail-panel .dim-row .dl{font-size:11.5px;font-weight:600;color:var(--text-2);}
+  .detail-panel .dim-row .dl b{color:var(--text-1);}
+  .detail-panel .bar-track{height:7px;}
+  .dp-empty{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    text-align:center;color:var(--text-3);padding:48px 16px;
+  }
+  .dp-empty svg{width:34px;height:34px;color:var(--blue);opacity:.65;}
+  .dp-empty b{color:var(--text-2);font-size:13px;font-weight:600;}
+  .dp-empty span{font-size:12px;line-height:1.5;max-width:220px;}
 </style>
 </head>
 <body>
 <div id="loadOverlay" class="load-overlay"><div class="load-spinner"></div><div class="lt">Memuat dashboard…</div></div>
 <div class="wrap">
 
-  <header class="top">
-    <div>
-      <p class="eyebrow"><span class="dot"></span>PROTOTIPE — SISTEMISASI PILAR QRIS STEP UP</p>
-      <h1>Cross-Border Corridor Monitoring</h1>
-      <p class="sub">Dashboard pemantauan perluasan kerja sama QRIS Cross-Border, dikembangkan sebagai bagian dari BPR 3S PASTI SIP — DKSP.</p>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-end;">
+  <header class="masthead">
+    <div class="mh-glow"></div>
+    <div class="mh-top">
+      <p class="eyebrow"><span class="dot"></span>QRIS STEP UP · SISTEMISASI BPR 3S</p>
       <button id="navToggleBtn" class="nav-toggle" type="button">Edit Data →</button>
-      <div class="stat-row" id="statRow"></div>
     </div>
+    <div class="mh-body">
+      <div class="mh-headline">
+        <h1>Cross-Border Corridor Monitoring</h1>
+        <p class="sub">Pemantauan perluasan kerja sama QRIS Cross-Border antarnegara.</p>
+      </div>
+      <div class="mh-focal" id="focalStat"></div>
+    </div>
+    <div class="mh-metrics" id="metricStrip"></div>
   </header>
 
 <div id="trackerView">
@@ -576,6 +730,7 @@ function saveCorridors(){
 
 let corridors = loadCorridors();
 let selected = null;
+let justMovedIso = null;   // menandai kartu yang baru dipindah → dianimasikan
 
 function computeAlerts(c){
   // Koridor berstatus "Selesai — Live" dianggap tuntas — tidak lagi memunculkan alert.
@@ -609,20 +764,43 @@ function renderStats(){
   const total = corridors.length;
   const launched = corridors.filter(c=>c.step>=5).length;
   const atRisk = corridors.filter(c=>computeAlerts(c).length>0).length;
-  const avgDays = Math.round(corridors.filter(c=>c.days).reduce((a,c)=>a+c.days,0)/corridors.filter(c=>c.days).length);
-  document.getElementById('statRow').innerHTML = `
-    <div class="stat-pill"><span class="n">${total}</span><span class="l">Koridor Dipantau</span></div>
-    <div class="stat-pill green"><span class="n">${launched}</span><span class="l">Launched</span></div>
-    <div class="stat-pill amber"><span class="n">${avgDays}</span><span class="l">Rata² Hari Siklus</span></div>
-    <div class="stat-pill red"><span class="n">${atRisk}</span><span class="l">Perlu Perhatian</span></div>
-  `;
+  const inProg = total - launched;
+  const launchedDays = corridors.filter(c=>c.days);
+  const avgDays = launchedDays.length ? Math.round(launchedDays.reduce((a,c)=>a+c.days,0)/launchedDays.length) : 0;
+  const pctLive = total ? Math.round((launched/total)*100) : 0;
+
+  // Focal stat besar — satu angka sebagai pusat perhatian
+  const focal = document.getElementById('focalStat');
+  if(focal){
+    focal.innerHTML = `
+      <div class="fs-num"><b>${launched}</b><span class="fs-den">/ ${total}</span></div>
+      <div class="fs-label">Koridor telah <strong>Live</strong></div>
+    `;
+  }
+  // Metrik sekunder — tenang, tanpa pil warna-warni
+  const strip = document.getElementById('metricStrip');
+  if(strip){
+    strip.innerHTML = `
+      <div class="ms-item"><span class="ms-n">${total}</span><span class="ms-l">Koridor dipantau</span></div>
+      <div class="ms-item"><span class="ms-n">${inProg}</span><span class="ms-l">Sedang berjalan</span></div>
+      <div class="ms-item"><span class="ms-n">${avgDays}</span><span class="ms-l">Rata-rata hari siklus</span></div>
+      <div class="ms-item ${atRisk?'ms-warn':''}"><span class="ms-n">${atRisk}</span><span class="ms-l">Perlu perhatian</span></div>
+    `;
+  }
+}
+
+function clearCardDragState(grid){
+  grid.querySelectorAll('.card').forEach(c=>{
+    c.classList.remove('card-dragging','card-drop-target');
+    c.setAttribute('draggable','false');
+  });
 }
 
 function renderGrid(){
   const grid = document.getElementById('corridorGrid');
   const gripSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>`;
   grid.innerHTML = corridors.map((c,i)=>`
-    <div class="card ${selected===i?'active':''}" data-i="${i}" draggable="false">
+    <div class="card ${selected===i?'active':''} ${c.iso===justMovedIso?'card-moved':''}" data-i="${i}" draggable="false">
       <span class="card-grip" title="Seret untuk memindahkan kartu">${gripSvg}</span>
       <div class="card-top">
         <span class="country"><span class="iso-badge">${c.iso}</span>${c.c}</span>
@@ -641,6 +819,9 @@ function renderGrid(){
       </div>
     </div>
   `).join('');
+
+  // reset penanda animasi setelah kartu yang dipindah dirender sekali
+  if(justMovedIso){ setTimeout(()=>{ justMovedIso = null; }, 650); }
 
   let cardDragSrcI = null;   // source array index
   let didDrag = false;
@@ -676,23 +857,25 @@ function renderGrid(){
       e.preventDefault();
       const from = cardDragSrcI;
       const to = +el.dataset.i;
+      // bersihkan SEMUA state visual drag segera (tidak menunggu dragend)
+      clearCardDragState(grid);
+      cardDragSrcI = null;
       if(from===null || from===to) return;
-      // track which corridor object was selected so selection follows the move
+      // jaga agar seleksi mengikuti kartu yang dipindah
       const selectedObj = (selected!==null) ? corridors[selected] : null;
       const [moved] = corridors.splice(from, 1);
       corridors.splice(to, 0, moved);
       selected = selectedObj ? corridors.indexOf(selectedObj) : null;
+      justMovedIso = moved.iso;           // tandai untuk animasi
       saveCorridors();
-      renderAll();           // re-render grid, readiness table, and variance in the new order
+      // tunda rebuild agar drag native selesai (dragend) di DOM yang masih utuh dulu
+      setTimeout(renderAll, 0);
     });
 
     el.addEventListener('dragend', ()=>{
-      grid.querySelectorAll('.card').forEach(c=>{
-        c.classList.remove('card-dragging','card-drop-target');
-        c.setAttribute('draggable','false');
-      });
+      clearCardDragState(grid);
       cardDragSrcI = null;
-      setTimeout(()=>{ didDrag = false; }, 0);   // let the trailing click be suppressed first
+      setTimeout(()=>{ didDrag = false; }, 0);   // biarkan klik setelah drag diabaikan dulu
     });
 
     el.addEventListener('click', ()=>{
@@ -710,25 +893,41 @@ function renderDetail(){
   const panel = document.getElementById('detailPanel');
   if(selected!==null && !corridors[selected]) selected = null;
   if(selected===null){
-    panel.innerHTML = `<span class="bl"></span><span class="br"></span><div class="empty-state">Pilih salah satu koridor pada tracker untuk melihat rincian readiness &amp; milestone.</div>`;
+    panel.innerHTML = `
+      <div class="dp-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a3 3 0 1 0 6 0 3 3 0 0 0-6 0z"/><path d="M17.5 17.5 21 21"/><path d="M3.3 7A9 9 0 0 1 21 9"/></svg>
+        <b>Belum ada koridor dipilih</b>
+        <span>Pilih salah satu kartu koridor untuk melihat rincian readiness dan milestone.</span>
+      </div>`;
     return;
   }
   const c = corridors[selected];
   const avg = Math.round((c.legal+c.tech+c.industri)/3*10)/10;
+  const isLive = c.step>=5;
+  const stageName = isLive ? 'Selesai — Live' : STEPS[Math.min(c.step,4)];
+  const stageIdx = isLive ? 5 : c.step+1;
+  const miniSteps = STEPS.map((s,si)=>`<span class="s ${si<c.step?'done':(si===c.step && !isLive?'cur':(isLive?'done':''))}"></span>`).join('');
+  const row = (label,val,hint)=>`<div class="dim-row"><div class="dl"><span title="${hint}">${label}</span><b>${val}/10</b></div><div class="bar-track"><div class="bar-fill" style="width:${pct(val)}%;background:${barColor(val)}"></div></div></div>`;
   panel.innerHTML = `
-    <span class="bl"></span><span class="br"></span>
     <h3><span class="iso-badge">${c.iso}</span> ${c.c}</h3>
-    <div class="dsub">TAHAP: ${c.step>=5?'IMPLEMENTATION — LIVE':STEPS[Math.min(c.step,4)].toUpperCase()}</div>
+    <div class="dp-badges">${stageBadge(c)}${riskBadge(c)}</div>
 
-    <div class="dim-row"><div class="dl"><span title="${SCALE_LEGEND.legal}">Legal</span><b>${c.legal}/10</b></div><div class="bar-track"><div class="bar-fill" style="width:${pct(c.legal)}%;background:${barColor(c.legal)}"></div></div></div>
-    <div class="dim-row"><div class="dl"><span title="${SCALE_LEGEND.tech}">Teknis</span><b>${c.tech}/10</b></div><div class="bar-track"><div class="bar-fill" style="width:${pct(c.tech)}%;background:${barColor(c.tech)}"></div></div></div>
-    <div class="dim-row"><div class="dl"><span title="${SCALE_LEGEND.industri}">Industri</span><b>${c.industri}/10</b></div><div class="bar-track"><div class="bar-fill" style="width:${pct(c.industri)}%;background:${barColor(c.industri)}"></div></div></div>
-    <div class="dim-row"><div class="dl"><span>Rata-rata Readiness</span><b>${avg}/10</b></div><div class="bar-track"><div class="bar-fill" style="width:${pct(avg)}%;background:${barColor(avg)}"></div></div></div>
+    <div class="dp-stage">
+      <div class="dp-stage-mini">${miniSteps}</div>
+      <div class="dp-stage-now">${isLive?'Tahap 5 dari 5':'Tahap '+stageIdx+' dari 5'}</div>
+      <div class="dp-stage-name">${stageName}</div>
+    </div>
+
+    <div class="dp-group">Readiness Index</div>
+    ${row('Legal', c.legal, SCALE_LEGEND.legal)}
+    ${row('Teknis', c.tech, SCALE_LEGEND.tech)}
+    ${row('Industri', c.industri, SCALE_LEGEND.industri)}
+    ${row('Rata-rata', avg, 'Rata-rata ketiga aspek')}
 
     <div class="milestones">
       <div class="mh">Milestone</div>
       <div class="m-item"><span>Inisiasi (MoU/SBC)</span><span class="mv ok">${c.start}</span></div>
-      <div class="m-item"><span>Target Launch</span><span class="mv ${c.launch?'ok':'late'}">${c.launch||'Belum ditetapkan'}</span></div>
+      <div class="m-item"><span>Tanggal Launch</span><span class="mv ${c.launch?'ok':'late'}">${c.launch||'Belum launch'}</span></div>
       <div class="m-item"><span>Durasi Siklus</span><span class="mv ${c.days? (c.days>TARGET_DAYS?'late':'ok') : ''}">${c.days? c.days+' hari' : '—'}</span></div>
     </div>
   `;
@@ -786,7 +985,7 @@ function renderVariance(){
         <div class="v-name"><span class="iso-badge">${c.iso}</span> ${c.c}</div>
         <div class="v-track">
           <div class="v-bar ${over?'over':'under'}" style="width:${pct}%"></div>
-          <div class="v-target" style="left:${targetPct}%" data-label="target &lt;365h"></div>
+          <div class="v-target" style="left:${targetPct}%" data-label=""></div>
         </div>
         <div class="v-val ${over?'over':'under'}">${c.days} hari<small>selesai</small></div>
       </div>`;
@@ -800,14 +999,17 @@ function renderVariance(){
         <div class="v-name"><span class="iso-badge">${c.iso}</span> ${c.c} <span class="v-mini">Berjalan</span></div>
         <div class="v-track">
           <div class="v-bar progress" style="width:${pct}%"></div>
-          <div class="v-target" style="left:${targetPct}%" data-label="target &lt;365h"></div>
+          <div class="v-target" style="left:${targetPct}%" data-label=""></div>
         </div>
         <div class="v-val prog">${e} hari<small>${overTarget?'lewat target':'berjalan'}</small></div>
       </div>`;
   }).join('');
 
   const list = document.getElementById('varianceList');
-  list.innerHTML = doneRows + runRows || `<div class="empty-state">Belum ada data timeline.</div>`;
+  const legend = (doneRows || runRows)
+    ? `<div class="v-legend"><span class="v-legend-mark"></span>Garis vertikal menandai target siklus &lt; 1 tahun (365 hari)</div>`
+    : '';
+  list.innerHTML = legend + (doneRows + runRows || `<div class="empty-state">Belum ada data timeline.</div>`);
 }
 
 function renderAlerts(){
